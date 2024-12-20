@@ -26,6 +26,17 @@ This repo demonstrates the implementation of both a Vector Quantized Variational
   - **Reparameterization**: Allows for stochastic sampling in the latent space, which helps in generating new data points with inherent variability.
   - **Decoder**: Transforms latent samples back to the original space, reconstructing the 3D Gaussian parameters.
   - **Loss**: Incorporates both reconstruction loss (MSE) and KL divergence for regularization, balancing model's fit to data with the distribution of latent variables.
+ 
+  #### **TransformerDiffusion**
+- **Diffusion Model with Transformer Architecture**:
+  - **Gaussian Parameters Network**: Predicts position (xyz), scale, rotation (quaternions), and opacity
+  - **Transformer Encoder**: Uses self-attention to capture relationships between Gaussians
+  - **Time Embedding**: Sinusoidal embeddings for diffusion timesteps
+  - **Parameter-Specific Processing**: 
+    - Position: Direct prediction in xyz space
+    - Scale: Positive values ensured through softplus activation
+    - Rotation: Quaternion normalization for valid rotations
+    - Opacity: Logits converted to probabilities through sigmoid
 
 ### Training and Generation
 
