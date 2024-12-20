@@ -1,14 +1,10 @@
 
 # Gen_3DGS
 
-## VQ-VAE
-
-
-# Gen_3DGS
 
 ## VQ-VAE and VAE
 
-This Python script demonstrates the implementation of both a Vector Quantized Variational Autoencoder (VQ-VAE) and a Variational Autoencoder (VAE) for learning and generating 3D Gaussian distributions. Below is an overview of the functionalities:
+This repo demonstrates the implementation of both a Vector Quantized Variational Autoencoder (VQ-VAE) and a Variational Autoencoder (VAE) for learning and generating 3D Gaussian distributions. Below is an overview of the functionalities:
 
 ### Dataset Handling (`ShapeNetGaussianDataset`)
 - Loads 3D Gaussian parameters from PLY files, which contain 3D point data including position, scale, rotation, and opacity.
@@ -53,32 +49,10 @@ This Python script demonstrates the implementation of both a Vector Quantized Va
 - **VQ-VAE**: Offers discrete latent representations, which can be beneficial for tasks requiring clear separation of concepts or when aiming for data compression while maintaining generative capabilities.
 - **VAE**: Provides a continuous latent space, which is excellent for capturing nuanced variations in data, offering flexibility in generative tasks where smooth transitions between different data points are desirable.
 
-This script serves as an educational and practical resource for understanding how different autoencoding techniques can handle complex 3D data, particularly in applications like scene reconstruction, VR/AR, and beyond.
-This Python script demonstrates the implementation of a Vector Quantized Variational Autoencoder (VQ-VAE) specifically tailored for learning and generating 3D Gaussian distributions. Here's what you'll find in this file:
-
-- **Dataset Handling (`ShapeNetGaussianDataset`)**: 
-  - Loads 3D Gaussian parameters from PLY files, which are commonly used to store 3D point data with additional attributes like position, scale, rotation, and opacity. 
-  - Normalizes and reshapes the data into a consistent grid format, making it suitable for batch processing in deep learning models. 
-  - Includes error handling and checks for data integrity, which is crucial when dealing with real-world datasets.
-
-- **Model Architecture**:
-  - **VQVAEGaussian3D**: A VQ-VAE model designed to encode and decode 3D Gaussian splats. 
-    - The encoder uses 3D convolutions to understand the spatial structure of Gaussian distributions.
-    - Vector Quantization (`VectorQuantizer`) is implemented to discretize the latent space, allowing the model to learn a compact and meaningful representation of 3D shapes.
-    - The decoder reconstructs the Gaussian parameters from the quantized latent space.
-  - **Normalization (`NormalizationLayer`)**: Ensures input data is within a manageable range for neural network layers.
-
-- **Training and Generation**:
-  - `train_vqvae`: A function to train the VQ-VAE model with detailed logging for each epoch and batch, including checks for numerical stability (NaN values).
-  - `generate_samples`: Generates new 3D Gaussian samples from the trained model, with options to save outputs in both text and PLY formats for further analysis or visualization.
-
-- **Utility Functions**:
-  - `save_gaussians_to_ply`: Converts the generated Gaussian samples into PLY files, which can be viewed in various 3D visualization tools, aiding in understanding the 3D structure and attributes of the generated Gaussians.
-
-This script is an excellent starting point if you're interested in:
+This repository is an excellent starting point if you're interested in:
 
 - Understanding how 3D data can be represented and processed using Gaussian distributions.
-- Learning about VQ-VAE for 3D data, which is a powerful technique for both compressing and generating complex 3D structures.
+- Learning about VQ-VAE and VAE for 3D data, which is a powerful technique for both compressing and generating complex 3D structures.
 - Exploring data normalization and preparation for machine learning models in 3D contexts.
 - Visualizing and working with 3D point clouds or splats, which are foundational in computer vision and graphics applications like scene reconstruction, VR/AR, and more.
 
@@ -86,3 +60,6 @@ This script is an excellent starting point if you're interested in:
 - Ensure you have PyTorch, numpy, and plyfile installed. 
 - Update the `directory` path in the configuration to point to your dataset of PLY files.
 - Run the script to train the model and generate samples.
+
+### Dataset
+ShapeSplatsV1 - [https://huggingface.co/datasets/ShapeNet/ShapeSplatsV1/tree/main](url)
