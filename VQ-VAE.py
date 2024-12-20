@@ -261,26 +261,194 @@ def train_vqvae(model, dataloader, epochs, lr=1e-5, device='cuda'):
 
 def save_gaussians_to_ply(samples: torch.Tensor, filepath: str):
     """
-    Save generated Gaussian samples to PLY format for visualization.
+    Convert generated Gaussian samples to PLY format with improved error handling and debugging.
+    
+    Parameters:
+        samples (torch.Tensor): Generated samples tensor of shape [batch_size, 11, D, H, W]
+        filepath (str): Path where to save the PLY file
     """
-    # Convert tensor to numpy for easier manipulation
+    # Move to CPU and convert to numpy
     samples_np = samples.cpu().numpy()
     
-    # Debugging and stats
+    # Print initial stats for debugging
     print("\nInitial sample statistics:")
     print(f"Sample shape: {samples_np.shape}")
     print(f"Sample range: {samples_np.min():.3f} to {samples_np.max():.3f}")
     print(f"Opacity channel range: {samples_np[:, 10].min():.3f} to {samples_np[:, 10].max():.3f}")
     
+    # Process each sample
     for sample_idx, sample in enumerate(samples_np):
         # Extract parameters
-        positions = sample[:3].reshape(-1, 3)
-        scales = sample[3:6].reshape(-1, 3)
-        rotations = sample[6:10].reshape(-1, 4)
-        opacity = sample[10].reshape(-1, 1)
+        positions = sample[:3].reshape(-1, 3)  # xyz positions
+        scales = sample[3:6].reshape(-1, 3)    # xyz scales
+        rotations = sample[6:10].reshape(-1, 4) # quaternion rotation
+        opacity = sample[10].reshape(-1, 1)    # opacity
         
-        # Normalize for visualization
-        positions = positions * 2.0  # Spread out for better visibility
-        scales = np.clip(scales, 0.001, 0.1)
+        # Print pre-processing stats
+        print(f"\nSample {sample_idx} pre-processing statistics:")
+        print(f"Positions range: {positions.min():.3f} to {positions.max():.3f}")
+        print(f"Scales range: {scales.min():.3f} to {scales.max():.3f}")
+        print(f"Rotations range: {rotations.min():.3f} to {rotations.max():.3f}")
+        print(f"Opacity range: {opacity.min():.3f} to {opacity.max():.3f}")
+        
+        # Normalize and scale data for better visualization
+        positions = positions * 2.0  # Increase spatial spread
+        scales = np.clip(scales, 0.001, 0.1)  # Reasonable scale values
         rotations = rotations / (np.linalg.norm(rotations, axis=1, keepdims=True) + 1e-8)
-        opacity = np.clip(opacity, 0.0, 
+        opacity = np.clip(opacity, 0.0, 1.0)  # Changed minimum to 0.0 for debugging
+        
+        # Print post-processing stats
+        print(f"\nSample {sample_idx} post-processing statistics:")
+        print(f"Positions range: {positions.min():.3f} to {positions.max():.3f}")
+        print(f"Scales range: {scales.min():.3f} to {scales.max():.3f}")
+        print(f"Rotations range: {rotations.min():.3f} to {rotations.max():.3f}")
+        print(f"Opacity range: {opacity.min():.3f} to {opacity.max():.3f}")
+        
+        # Get points with significant opacity
+        valid_mask = opacity.squeeze() > 0.1
+        num_valid = np.sum(valid_mask)
+        print(f"Number of valid points (opacity > 0.1): {num_valid}")
+        
+        if num_valid == 0:
+            print("Warning: No valid points found. Lowering opacity threshold to 0.05")
+            valid_mask = opacity.squeeze() > 0.05
+            num_valid = np.sum(valid_mask)
+            print(f"Number of valid points with lower threshold: {num_valid}")
+            
+            if num_valid == 0:
+                print("Error: Still no valid points. Saving all points instead.")
+                valid_mask = np.ones_like(opacity.squeeze(), dtype=bool)
+                num_valid = np.sum(valid_mask)
+        
+        # Create color coefficients (default white)
+        sh_coeffs = np.ones((positions.shape[0], 3), dtype=np.float32)
+        
+        # Create vertices array with proper dtype
+        vertex_dtype = [
+            ('x', 'f4'), ('y', 'f4'), ('z', 'f4'),
+            ('scale_0', 'f4'), ('scale_1', 'f4'), ('scale_2', 'f4'),
+            ('rot_0', 'f4'), ('rot_1', 'f4'), ('rot_2', 'f4'), ('rot_3', 'f4'),
+            ('opacity', 'f4'),
+            ('f_dc_0', 'f4'), ('f_dc_1', 'f4'), ('f_dc_2', 'f4')
+        ]
+        
+        vertices = []
+        for i in range(positions.shape[0]):
+            if valid_mask[i]:
+                vertex = (
+                    float(positions[i, 0]), float(positions[i, 1]), float(positions[i, 2]),
+                    float(scales[i, 0]), float(scales[i, 1]), float(scales[i, 2]),
+                    float(rotations[i, 0]), float(rotations[i, 1]), 
+                    float(rotations[i, 2]), float(rotations[i, 3]),
+                    float(opacity[i, 0]),
+                    float(sh_coeffs[i, 0]), float(sh_coeffs[i, 1]), float(sh_coeffs[i, 2])
+                )
+                vertices.append(vertex)
+        
+        # Create PLY element
+        vertex_array = np.array(vertices, dtype=vertex_dtype)
+        vertex_element = PlyElement.describe(vertex_array, 'vertex')
+        
+        # Save PLY file
+        output_path = f"{filepath[:-4]}_{sample_idx}.ply" if sample_idx > 0 else filepath
+        PlyData([vertex_element], text=True).write(output_path)
+        
+        print(f"\nSaved PLY file: {output_path}")
+        print(f"Number of saved points: {len(vertices)}")
+        
+        # Safe statistics calculation
+        if len(vertices) > 0:
+            vertex_array = np.array(vertices)
+            print(f"Final position range: {vertex_array[:, :3].min():.3f} to {vertex_array[:, :3].max():.3f}")
+            print(f"Final scale range: {vertex_array[:, 3:6].min():.3f} to {vertex_array[:, 3:6].max():.3f}")
+            print(f"Final opacity range: {vertex_array[:, 10].min():.3f} to {vertex_array[:, 10].max():.3f}")
+
+
+def generate_samples(model: VQVAEGaussian3D, 
+                    num_samples: int = 1,
+                    device: str = 'cuda',
+                    save_path: Optional[str] = None,
+                    save_ply: bool = True) -> torch.Tensor:
+    
+    model.eval()
+    model = model.to(device)
+    
+    with torch.no_grad():
+        # Sample from learned distributions
+        vq_embeddings = model.vq_layer.embedding.weight.data
+        # Choose random indices for each sample
+        indices = torch.randint(0, model.vq_layer.num_embeddings, (num_samples, 5, 5, 5), device=device)
+        # Use these indices to select embeddings
+        z_q = vq_embeddings[indices.view(-1)].view(num_samples, 64, 5, 5, 5)
+        
+        samples = model.decoder(z_q)
+        
+        # Save text format if requested
+        if save_path:
+            # Original text saving logic...
+            with open(save_path, 'w') as f:
+                samples_np = samples.cpu().numpy()
+                for sample_idx in range(samples_np.shape[0]):
+                    f.write(f"Sample {sample_idx+1}:\n")
+                    for d in range(samples_np.shape[2]):
+                        for h in range(samples_np.shape[3]):
+                            for w in range(samples_np.shape[4]):
+                                opacity = samples_np[sample_idx, 10, d, h, w]
+                                if opacity > 0.1:
+                                    pos = samples_np[sample_idx, :3, d, h, w]
+                                    scales = samples_np[sample_idx, 3:6, d, h, w]
+                                    rots = samples_np[sample_idx, 6:10, d, h, w]
+                                    
+                                    f.write(f"Point at ({d},{h},{w}):\n")
+                                    f.write(f"  Position: [{pos[0]:.4f}, {pos[1]:.4f}, {pos[2]:.4f}]\n")
+                                    f.write(f"  Scales: [{scales[0]:.4f}, {scales[1]:.4f}, {scales[2]:.4f}]\n")
+                                    f.write(f"  Rotation: [{rots[0]:.4f}, {rots[1]:.4f}, {rots[2]:.4f}, {rots[3]:.4f}]\n")
+                                    f.write(f"  Opacity: {opacity:.4f}\n\n")
+            
+            print(f"Saved text samples to {save_path}")
+        save_gaussians_to_ply(samples, save_path)
+        # Save PLY files if requested
+        """
+        if save_ply:
+            ply_base_path = save_path.rsplit('.', 1)[0] if save_path else "generated"
+            save_as_ply(samples, ply_base_path)
+        """
+        return samples
+
+if __name__ == "__main__":
+    # Configuration
+    config = {
+        'directory': '/home/abhimanyu/Diffusion/bottles_data',  # Update this path
+        'batch_size': 32,
+        'num_epochs': 100,
+        'learning_rate': 1e-3,
+        'device': 'cuda' if torch.cuda.is_available() else 'cpu',
+        'points_per_batch': 1000
+    }
+    
+    # Initialize dataset and dataloader
+    dataset = ShapeNetGaussianDataset(directory=config['directory'], 
+                                    points_per_batch=config['points_per_batch'])
+    
+    dataloader = DataLoader(dataset, 
+                          batch_size=config['batch_size'],
+                          shuffle=True,
+                          num_workers=4)
+    
+    # Initialize model
+    model = VQVAEGaussian3D(num_embeddings=512, embedding_dim=64)
+    
+    # Train model
+    model = train_vqvae(model,
+                       dataloader,
+                       epochs=config['num_epochs'],
+                       lr=config['learning_rate'],
+                       device=config['device'])
+    
+    # Generate samples
+    samples = generate_samples(model,
+                             num_samples=100,
+                             device=config['device'],
+                             save_path='VQVAEgenerated_samples.txt')
+    
+    print("Training and generation completed!")
