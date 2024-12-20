@@ -1,6 +1,6 @@
 
 # Gen_3DGS
-This repository serves my ongoing exploration of different generative models. 
+This repository serves as my ongoing exploration of different generative models. 
 I have written the below so that it can be useful to someone new to these architectures and wants to start experimenting with them. 
 Here is a paper that aims to explain the concepts succintly and also references various papers that have been useful 
 
