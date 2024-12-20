@@ -3,7 +3,6 @@
 
 ## VQ-VAE
 
-### `vqvae_3d_gaussian.py`
 
 This Python script demonstrates the implementation of a Vector Quantized Variational Autoencoder (VQ-VAE) specifically tailored for learning and generating 3D Gaussian distributions. Here's what you'll find in this file:
 
