@@ -1,8 +1,14 @@
 
 # Gen_3DGS
+This repository serves my ongoing exploration of different generative models. 
+I have written the below so that it can be useful to someone new to these architectures and wants to start experimenting with them. 
+Here is a paper that aims to explain the concepts succintly and also references various papers that have been useful 
+
+[add link here]
 
 
 ## VQ-VAE and VAE
+
 
 This repo demonstrates the implementation of both a Vector Quantized Variational Autoencoder (VQ-VAE) and a Variational Autoencoder (VAE) for learning and generating 3D Gaussian distributions. Below is an overview of the functionalities:
 
