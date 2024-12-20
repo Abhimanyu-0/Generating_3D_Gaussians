@@ -27,7 +27,7 @@ This repo demonstrates the implementation of both a Vector Quantized Variational
   - **Decoder**: Transforms latent samples back to the original space, reconstructing the 3D Gaussian parameters.
   - **Loss**: Incorporates both reconstruction loss (MSE) and KL divergence for regularization, balancing model's fit to data with the distribution of latent variables.
  
-  #### **TransformerDiffusion**
+#### **TransformerDiffusion**
 - **Diffusion Model with Transformer Architecture**:
   - **Gaussian Parameters Network**: Predicts position (xyz), scale, rotation (quaternions), and opacity
   - **Transformer Encoder**: Uses self-attention to capture relationships between Gaussians
