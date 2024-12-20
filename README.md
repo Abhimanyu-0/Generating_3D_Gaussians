@@ -1,10 +1,15 @@
 
 # Gen_3DGS
-This repository serves as my ongoing exploration of different generative models. 
-I have written the below so that it can be useful to someone new to these architectures and wants to start experimenting with them. 
-Here is a paper that aims to explain the concepts succintly and also references various papers that have been useful 
+This repository serves as my ongoing exploration of different generative models. I have tried to make it so that it can be useful to someone new to these architectures and wants to start experimenting with them.
 
-[add link here]
+## 📄 Accompanying Paper
+For a deeper understanding of the concepts and implementation details, please refer to our accompanying paper: `Generating 3D Gaussians: An exploration`. The paper provides:
+- Overview of underlying concepts behind generative models
+- Detailed analysis of different architectures
+- Implementation insights and results
+- References to foundational papers and research that informed this work
+
+[Link to paper](./paper.pdf)
 
 
 ## VQ-VAE and VAE
