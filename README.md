@@ -9,7 +9,7 @@ For a deeper understanding of the concepts and implementation details, please re
 - Implementation insights and results
 - References to foundational papers and research that informed this work
 
-[Link to paper](./paper.pdf)
+[Link to paper](./Abhimanyu_Suthar_DL_final_project.pdf)
 
 
 ## VQ-VAE and VAE
